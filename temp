@@ -1,0 +1,27 @@
+if @game.is_running? 
+      ran = @current_block.drop_by_one
+      @current_pos.each{|block| block.remove}
+      
+      draw
+      store_current
+     if @cheater 
+        @score -= 100
+        @current_block = MyPiece.new([[0,0]], self)
+        @current_pos = nil
+        @cheater = false
+        while ran
+           ran = @current_block.drop_by_one
+        end
+     else
+
+       while ran
+        ran = @current_block.drop_by_one
+        @score += 1
+      end
+=begin     
+      next_piece  
+      @game.update_score
+=end
+     end    
+     draw              
+    end
