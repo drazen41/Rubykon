@@ -167,7 +167,13 @@ class VerticalLine < GeometryValue
          self # shifting no-points is no-points
   end
   def intersect other
-        self
+        other.intersect_VerticalLine
+  end
+  def intersect_LineSegment lineSegment
+    self
+  end
+  def intersect_Point Point
+    self
   end
   def preprocess_prog
      VerticalLine.new(x)
@@ -222,10 +228,15 @@ class Intersect < GeometryExpression
     @e1 = e1
     @e2 = e2
   end
-  def eval_prog env 
-        self # all values evaluate to self
+  def eval_prog env
+    eval_prog env
+       
   end
-  
+  def preprocess_prog
+    a = @e1.preprocess_prog
+    b = @e2.preprocess_prog
+    Intersect.new(a,b)
+  end
 end
 
 class Let < GeometryExpression

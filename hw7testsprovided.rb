@@ -1,7 +1,7 @@
 # University of Washington, Programming Languages, Homework 7, 
 # hw7testsprovided.rb
 
-require_relative "./hw7.rb"
+require_relative "hw7.rb"
 
 # Will not work completely until you implement all the classes and their methods
 
