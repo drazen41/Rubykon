@@ -127,9 +127,9 @@ class Point < GeometryValue
     @y = y
   end
   def shift(dx,dy)
-     @x+=dx
-     @y+=dy
-     self
+     a = @x+dx
+     b = @y+dy
+     Point.new(a,b)
   end
   def intersect other
       other.intersectPoint self 
@@ -238,7 +238,7 @@ class LineSegment < GeometryValue
       Point.new(@x1,@y1)
     elsif real_close(@x1,@x2)
       if @y1 > @y2
-        LineSegment.new(@x2,@y2,@x1,@y2)
+        LineSegment.new(@x2,@y2,@x1,@y1)
       else
         LineSegment.new(@x1,@y1,@x2,@y2)
       end

@@ -106,7 +106,12 @@ if not ((d2.is_a? Point)and d2.x == ONE and d2.y == TWO)
 	puts "LineSegment preprocess_prog should convert to a Point"
 	puts "if ends of segment are real_close"
 end
-
+# nije prošao autograder
+d1 = LineSegment.new(ONE,TWO,ONE,ONE)
+d2 = d1.preprocess_prog()
+if not (d2.x1 == ONE and d2.y1 == ONE and d2.x2 == ONE and d2.y2 == TWO)
+  puts "LineSegment.new(1.0,2.0,1.0,1.0) should preprocess to LineSegment.new(1.0,1.0,1.0,2.0)"
+end
 d = d.preprocess_prog
 if not (d.x1 == -THREE and d.y1 == -FOUR and d.x2 == ONE and d.y2 == TWO)
 	puts "LineSegment preprocess_prog should make x1 and y1"
