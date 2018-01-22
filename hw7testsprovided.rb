@@ -173,5 +173,9 @@ if not (s1.x1 == TWO and s1.y1 == THREE and s1.x2 == SIX and s1.y2 == 9)
 	puts "Shift should shift e by dx and dy"
 end
 
-
+s = Shift.new(2.0,3.2,LineSegment.new(1.0,2.0,1.0,2.0))
+s1 = s.preprocess_prog
+if not (s1.dx == 2.0 and s1.dy == 3.2 and (not s1.e.is_a? Point))
+  puts "Shift should shift e by dx and dy"
+end
 

@@ -77,6 +77,9 @@ class GeometryValue
   def preprocess_prog
           self # no pre-processing to do here
   end
+  def inbetween(v,end1,end2)
+    ((end1 - GeometryExpression::Epsilon <= v and v <= end2 + GeometryExpression::Epsilon) or (end2 - GeometryExpression::Epsilon <= v and v <= end1 + GeometryExpression::Epsilon))
+  end
 end
 
 class NoPoints < GeometryValue
@@ -135,19 +138,36 @@ class Point < GeometryValue
       other.intersectPoint self 
   end
   def intersectPoint p
-      self # intersection with point and no-points is no-points
+    if real_close_point(self.x,self.y,p.x,p.y)
+      Point.new(self.x,self.y)  
+    else 
+      NoPoints.new
+    end
   end
   def intersectLine line
-      self # intersection with line and no-points is no-points
+    if real_close(self.y, line.m * self.x + line.b) 
+      Point.new(self.x,self.y)
+    else
+      NoPoints.new
+    end
   end
   def intersectVerticalLine vline
-      self # intersection with line and no-points is no-points
+    if real_close(self.x,vline.x) 
+      Point.new(self.x,self.y)
+    else
+      NoPoints.new    
+    end
   end
     # if self is the intersection of (1) some shape s and (2) 
     # the line containing seg, then we return the intersection of the 
     # shape s and the seg.  seg is an instance of LineSegment
   def intersectWithSegmentAsLineResult seg
-      self
+    # see if the point is within the segment bounds,  assumes v1 was properly preprocessed 
+    if inbetween(self.x,seg.x1,seg.x2) and inbetween(self.y,seg.y1,seg.y2)
+      Point.new(self.x,self.y)
+    else
+      NoPoints.new
+    end                    
   end
   
 end
@@ -161,26 +181,40 @@ class Line < GeometryValue
     @b = b
   end
   def shift(dx,dy)
-       self # shifting no-points is no-points
+    a = self.b + dy-self.m*dx
+    Line.new(self.m,a)
   end
   
   def intersect other
       other.intersectLine self 
   end
   def intersectPoint p
-      self # intersection with point and no-points is no-points
+    p.intersectLine self
   end
   def intersectLine line
-      self # intersection with line and no-points is no-points
+    if real_close(self.m,line.m) 
+      if real_close(self.b,line.b)
+        Line.new(self.m,self.b) # same line                     
+      else  
+        NoPoints.new # parallel lines do not intersect 
+      end
+        
+    else 
+    # one-point intersection 
+        x = (line.b - self.b) / (self.m - line.m)
+        y = self.m * x + self.b          
+        Point.new(x,y)   
+    end       
   end
   def intersectVerticalLine vline
-      self # intersection with line and no-points is no-points
+    Point.new(vline.x, self.m * vline.x + self.b)
   end
     # if self is the intersection of (1) some shape s and (2) 
     # the line containing seg, then we return the intersection of the 
     # shape s and the seg.  seg is an instance of LineSegment
   def intersectWithSegmentAsLineResult seg
-      self
+    #Line.new(self.m, self.b)
+    self
   end
 end
 
@@ -192,25 +226,30 @@ class VerticalLine < GeometryValue
     @x = x
   end
   def shift(dx,dy)
-         self # shifting no-points is no-points
+     VerticalLine.new(self.x + dx)
   end
   def intersect other
       other.intersectVerticalLine self # will be NoPoints but follow double-dispatch
   end
   def intersectPoint p
-      self # intersection with point and no-points is no-points
+     p.intersectVerticalLine self
   end
   def intersectLine line
-      self # intersection with line and no-points is no-points
+    line.intersectVerticalLine self
   end
   def intersectVerticalLine vline
-      self # intersection with line and no-points is no-points
+    if real_close(self.x,vline.x)
+       VerticalLine.new(self.x) # same line 
+    else 
+        NoPoints.new # parallel 
+    end
   end
     # if self is the intersection of (1) some shape s and (2) 
     # the line containing seg, then we return the intersection of the 
     # shape s and the seg.  seg is an instance of LineSegment
   def intersectWithSegmentAsLineResult seg
-      self
+     #VerticalLine.new(self.x)
+    self
   end
 end
 
@@ -228,9 +267,24 @@ class LineSegment < GeometryValue
     @y2 = y2
   end
   def shift(dx,dy)
-         self # shifting no-points is no-points
+     LineSegment.new(self.x1+dx, self.y1+dy,self.x2+dx,self.y2+dy)
   end
   def intersect other
+        other.intersectLineSegment self 
+  end
+  def intersectPoint p
+     p.intersectLineSegment self
+  end
+  def intersectLine line
+     line.intersectLineSegment self
+  end
+  def intersectVerticalLine vline
+     vline.intersectLineSegment self
+  end
+      # if self is the intersection of (1) some shape s and (2) 
+      # the line containing seg, then we return the intersection of the 
+      # shape s and the seg.  seg is an instance of LineSegment
+  def intersectWithSegmentAsLineResult seg
         self
   end
   def preprocess_prog 
@@ -263,7 +317,9 @@ class Intersect < GeometryExpression
     @e2 = e2
   end
   def eval_prog env
-    @e1.intersect @e2
+    a = @e1.eval_prog env
+    b = @e2.eval_prog env
+    a.intersect b
        
   end
   def preprocess_prog
@@ -283,13 +339,15 @@ class Let < GeometryExpression
     @e2 = e2
   end
   def preprocess_prog
-      a = @s.preprocess_prog
       b = @e1.preprocess_prog
       c = @e2.preprocess_prog
-      Let.new(a,b,c)
+      Let.new(@s,b,c)
   end
   def eval_prog env
-    pr = @s.eval_prog
+    a = env + [[@s,@e1]]
+   # b = Var.new(@s)  
+   # pr = b.eval_prog a
+    @e2.eval_prog a
   end
 end
 
@@ -305,13 +363,14 @@ class Var < GeometryExpression
     pr[1]
   end
   def preprocess_prog
-       Var.new(@s)
+       self
   end
 end
 
 class Shift < GeometryExpression
   # *add* methods to this class -- do *not* change given code and do not
   # override any methods
+  attr_reader :dx,:dy,:e
   def initialize(dx,dy,e)
     @dx = dx
     @dy = dy
@@ -319,9 +378,10 @@ class Shift < GeometryExpression
   end
   def preprocess_prog
      a = @e.preprocess_prog
-     Shift.new(dx,dy,e)
+     Shift.new(@dx,@dy,a)
   end
   def eval_prog env
-    @e.shift(dx,dy)
+    a = @e.eval_prog env
+    a.shift(@dx,@dy)
   end
 end
