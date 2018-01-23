@@ -214,7 +214,7 @@ class Line < GeometryValue
     # shape s and the seg.  seg is an instance of LineSegment
   def intersectWithSegmentAsLineResult seg
     #Line.new(self.m, self.b)
-    self
+    seg
   end
 end
 
@@ -249,7 +249,7 @@ class VerticalLine < GeometryValue
     # shape s and the seg.  seg is an instance of LineSegment
   def intersectWithSegmentAsLineResult seg
      #VerticalLine.new(self.x)
-    self
+    seg
   end
 end
 
@@ -284,8 +284,45 @@ class LineSegment < GeometryValue
       # if self is the intersection of (1) some shape s and (2) 
       # the line containing seg, then we return the intersection of the 
       # shape s and the seg.  seg is an instance of LineSegment
-  def intersectWithSegmentAsLineResult seg
-        self
+  def intersectWithSegmentAsLineResult seg #seg - v1, self - v2
+    a = seg
+    b = self
+    if real_close(a.x1,a.x2)
+      # the segments are on a vertical line 
+      #  let segment a start at or below start of segment b 
+      if a.y1 >= b.y1        
+        a = self
+        b = seg
+      end
+      if real_close(a.y2,b.y1)
+        Point.new(a.x2,a.y2) # just touching 
+      elsif a.y2 < b.y1
+        NoPoints.new # disjoint 
+      elsif a.y2 > b.y2
+        # b inside a 
+        LineSegment.new(b.x1, b.y1, b.x2, b.y2)
+      else
+        # overlapping 
+        LineSegment.new(b.x1,b.y1,a.x2,a.y2)
+      end
+    else
+      # the segments are on a (non-vertical) line 
+      # let segment a start at or to the left of start of segment b      
+      if a.x1 >= b.x1
+        a = self
+        b = seg
+      end
+        if real_close(a.x2,b.x1)
+          Point.new(a.x2,b.y2) # just touching 
+        elsif a.x2<b.x1
+          NoPoints.new # disjoint 
+        elsif a.x2>b.x2
+          LineSegment.new(b.x1,b.y1,b.x2,b.y2)   # b inside a 
+        else
+          LineSegment.new(b.x1,b.y1,a.x2,a.y2)  # overlapping 
+        end
+        
+      end
   end
   def preprocess_prog 
     if real_close_point(@x1,@y1,@x2,@y2)

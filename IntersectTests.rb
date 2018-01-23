@@ -54,3 +54,15 @@ i1 = i.preprocess_prog.eval_prog([])
 if not ((i1.is_a? LineSegment) and i1.x1==2.0 and i1.y1==3.0 and i1.x2==4.0 and i1.y2==9.0)
   puts "Incorrect answer 9"
 end
+#10
+i = Intersect.new(LineSegment.new(-1.0,-1.0,3.0,3.0), VerticalLine.new(-5.0))
+i1 = i.preprocess_prog.eval_prog([])
+if not (i1.is_a? NoPoints )
+  puts "Incorrect answer 10"
+end
+#11
+i = Intersect.new(LineSegment.new(2.0,3.0,6.0,15.0), LineSegment.new(0.0,-3.0,4.0,9.0))
+i1 = i.preprocess_prog.eval_prog([])
+if not ((i1.is_a? LineSegment) and i1.x1==2.0 and i1.y1==3.0 and i1.x2==4.0 and i1.y2==9.0)
+  puts "Incorrect answer 11"
+end
