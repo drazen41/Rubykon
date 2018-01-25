@@ -1,4 +1,4 @@
-require_relative "hw7.rb"
+require_relative "hw7_rev3.rb"
 
 
 
@@ -32,4 +32,10 @@ k1 = k.preprocess_prog.eval_prog([])
 if not ((k1.is_a? Point) and k1.x==0.0 and k1.y==0.0)
   puts "Let eval_prog wrong answer 2"
 end
-  
+#Let Variable Shadowing Test
+l2 = Let.new("a", LineSegment.new(-ONE, -TWO, THREE, FOUR),
+              Let.new("b", LineSegment.new(THREE,FOUR,-ONE,-TWO), Intersect.new(Var.new("a"),Var.new("b"))))
+l2 = l2.preprocess_prog.eval_prog([["a",Point.new(0,0)]])
+if not (l2.x1 == -ONE and l2.y1 == -TWO and l2.x2 == THREE and l2.y2 == FOUR)
+  puts "Let eval_prog should evaluate e2 after adding [s, e1] to the environment"
+end  

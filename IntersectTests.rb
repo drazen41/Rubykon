@@ -1,4 +1,4 @@
-require_relative "hw7.rb"
+require_relative "hw7_rev3.rb"
 
 #1
 i = Intersect.new(Point.new(1.0,1.0), LineSegment.new(1.0,1.0,5.0,6.0))
